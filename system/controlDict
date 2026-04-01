@@ -1,0 +1,19 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+
+application     laplacianFoam;
+
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         0.3;
+
+deltaT          5e-6;
+
+writeInterval   50;

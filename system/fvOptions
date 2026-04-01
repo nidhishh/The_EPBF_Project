@@ -1,0 +1,109 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvOptions;
+}
+
+heatSource
+{
+    type            scalarCodedSource;
+    active          yes;
+    name            movingHeatSource;
+
+    scalarCodedSourceCoeffs
+    {
+        selectionMode   all;
+
+        fields          (T);
+
+        codeInclude
+        #{
+            #include "fvCFD.H"
+        #};
+
+        codeOptions
+        #{
+            -I$(LIB_SRC)/finiteVolume/lnInclude
+        #};
+
+        codeLibs
+        #{
+            -lfiniteVolume
+        #};
+
+        codeCorrect
+        #{
+            // required but can be empty
+        #};
+
+        codeAddSup
+#{
+    const scalar t = mesh().time().value();
+
+    // ===== SAFE PARAMETERS =====
+    const scalar v = 0.04;
+    const scalar sigma = 0.00015;
+    const scalar Q0 = 3e10;
+
+    scalar x0 = 0.001 + v*t;
+    scalar y0 = 0.0025;
+
+    const scalar Tm = 1700;
+    const scalar dT = 100;    // smoother transition
+    const scalar Lh = 1e5;    // reduced
+
+    const vectorField& C = mesh().C();
+    const volScalarField& T = mesh().lookupObject<volScalarField>("T");
+
+    scalarField& source = eqn.source();
+
+    forAll(C, i)
+    {
+        const scalar x = C[i].x();
+        const scalar y = C[i].y();
+        const scalar z = C[i].z();
+
+        // surface heating only
+        if (z < 0.0009) continue;
+
+        scalar dx = x - x0;
+        scalar dy = y - y0;
+        scalar r2 = dx*dx + dy*dy;
+
+        // ===== SAFE BEAM =====
+        scalar Qbeam = Q0 * exp(-r2/(2*sigma*sigma));
+
+        // ===== TEMPERATURE =====
+        scalar Tlocal = T[i];
+
+        // clamp temperature (VERY IMPORTANT)
+        if (Tlocal > 3000) Tlocal = 3000;
+        if (Tlocal < 300)  Tlocal = 300;
+
+        // ===== COOLING =====
+        scalar Qloss = -0.05 * (Tlocal - 300);
+
+        // ===== MELTING =====
+        scalar fL = 0.5 * (1 + tanh((Tlocal - Tm)/dT));
+        scalar Qlatent = -Lh * fL;
+
+        // ===== TOTAL (LIMITED) =====
+        scalar Qtotal = Qbeam + Qloss + Qlatent;
+
+        // HARD LIMIT (CRITICAL)
+        if (Qtotal > 1e10) Qtotal = 1e10;
+        if (Qtotal < -1e10) Qtotal = -1e10;
+
+        source[i] += Qtotal;
+    }
+#};
+
+        codeSetValue
+        #{
+            // required but can be empty
+        #};
+    }
+}
