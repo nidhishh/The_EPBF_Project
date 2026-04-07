@@ -46,7 +46,7 @@ heatSource
     // ===== SAFE PARAMETERS =====
     const scalar v = 0.04;
     const scalar sigma = 0.00015;
-    const scalar Q0 = 3e10;
+    const scalar Q0 = 3e8;
 
     scalar x0 = 0.001 + v*t;
     scalar y0 = 0.0025;
