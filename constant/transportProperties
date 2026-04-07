@@ -7,7 +7,23 @@ FoamFile
     object      transportProperties;
 }
 
-DT              DT [0 2 -1 0 0 0 0] 7.7e-6;
+// Material selection
+material        steel;    // Change to "titanium" or "aluminum" as needed
 
-// Temperature-dependent scaling (used in code)
-Tref 300;
+// ===== STEEL (AISI 1045) PROPERTIES =====
+rhoSolid        [1 -3 0 0 0 0 0] 7850;      // Density (solid)         [kg/m3]
+rhoLiquid       [1 -3 0 0 0 0 0] 7500;      // Density (liquid)        [kg/m3]
+
+cpSolid         [0 2 -2 -1 0 0 0] 460;      // Specific Heat (solid)   [J/(kg K)]
+cpLiquid        [0 2 -2 -1 0 0 0] 700;      // Specific Heat (liquid)  [J/(kg K)]
+
+kSolid          [1 1 -3 -1 0 0 0] 50;       // Thermal Conductivity (solid) [W/(m K)]
+kLiquid         [1 1 -3 -1 0 0 0] 30;       // Thermal Conductivity (liquid)[W/(m K)]
+
+// Phase change properties
+Tm              [0 0 0 1 0 0 0] 1700;       // Melting Temperature     [K]
+Lh              [0 2 -2 0 0 0 0] 2.6e5;     // Latent Heat of Fusion   [J/kg]
+
+// Fluid (liquid) properties
+muLiquid        [1 -1 -1 0 0 0 0] 5e-3;     // Dynamic Viscosity (liquid) [Pa s]
+sigma           [1 -2 0 0 0 0 0] 1.8;       // Surface Tension         [N/m]
